@@ -1,5 +1,6 @@
 ﻿using DigiturkFilmAPI.Models;
 using DigiturkFilmAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DigiturkFilmAPI.Controllers
@@ -17,6 +18,7 @@ namespace DigiturkFilmAPI.Controllers
 
         [HttpGet]
         [Route("login")]
+        [AllowAnonymous]
         public ActionResult<string> Login([FromQuery]LoginRequest request)
         {
             return _authenticationService.Login(request);
@@ -24,6 +26,7 @@ namespace DigiturkFilmAPI.Controllers
 
         [HttpPost]
         [Route("register")]
+        [AllowAnonymous]
         public ActionResult<User> Register(LoginRequest request)
         {
             return _authenticationService.Register(request);
