@@ -82,6 +82,7 @@ builder.Services.AddSingleton<DataStore>();
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<FilmService>();
 
 var app = builder.Build();
 

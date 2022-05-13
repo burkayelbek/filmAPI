@@ -1,4 +1,5 @@
-﻿using DigiturkFilmAPI.Models;
+﻿using DigiturkFilmAPI.Domain;
+using DigiturkFilmAPI.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -15,7 +16,7 @@ namespace DigiturkFilmAPI.Services
             _configuration = configuration;
         }
 
-        public (byte[] hash, byte[] salt) CreatePasswordHash(string password)
+        public (string hash, string salt) CreatePasswordHash(string password)
         {
             byte[] tempSalt = null;
             byte[] tempHash = null;
@@ -26,14 +27,14 @@ namespace DigiturkFilmAPI.Services
                 tempSalt = hmac.Key;
                 tempHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
-            return (hash: tempHash, salt: tempSalt);
+            return (hash: Convert.ToBase64String(tempHash), salt: Convert.ToBase64String(tempSalt));
         }
 
         public bool VerifyPasswordHash(User user, string password)
         {
-            using (var hmac = new HMACSHA256(user.PasswordSalt))
+            using (var hmac = new HMACSHA256(System.Text.Encoding.ASCII.GetBytes(user.PasswordSalt)))
             {
-                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                var computedHash = Convert.ToBase64String(hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password)));
                 return computedHash.SequenceEqual(user.PasswordHash);
             }
         }

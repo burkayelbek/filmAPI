@@ -1,4 +1,5 @@
-﻿using DigiturkFilmAPI.Models;
+﻿using DigiturkFilmAPI.Domain;
+using DigiturkFilmAPI.Models;
 using DigiturkFilmAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

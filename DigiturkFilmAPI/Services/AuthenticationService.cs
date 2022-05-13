@@ -1,4 +1,5 @@
-﻿using DigiturkFilmAPI.Models;
+﻿using DigiturkFilmAPI.Domain;
+using DigiturkFilmAPI.Models;
 using DigiturkFilmAPI.Stores;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -34,7 +35,7 @@ namespace DigiturkFilmAPI.Services
 
         public User Register (LoginRequest request)
         {
-            (byte[] hash, byte[] salt) = _tokenService.CreatePasswordHash(request.Password);
+            (string hash, string salt) = _tokenService.CreatePasswordHash(request.Password);
 
             User newUser = new User
             {

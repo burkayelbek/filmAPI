@@ -1,4 +1,5 @@
-﻿using DigiturkFilmAPI.Models;
+﻿using DigiturkFilmAPI.Domain;
+using DigiturkFilmAPI.Models;
 using DigiturkFilmAPI.Stores;
 
 namespace DigiturkFilmAPI.Services
