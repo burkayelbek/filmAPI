@@ -6,21 +6,29 @@ namespace DigiturkFilmAPI.Services
 {
     public class UserService
     {
-        private DataStore _store;
+        private DataStore _dataStore;
 
-        public UserService(DataStore store)
+        public UserService(DataStore dataStore)
         {
-            _store = store;
+            _dataStore = dataStore;
         }
 
-        public User GetUserById(string id)
+
+        public List<User> GetAll()
         {
-            User? foundUser = _store.users.FirstOrDefault(u => u.Id.ToString() == id);
+            return _dataStore.GetAll<User>();
+        }
 
-            if (foundUser is null)
-                throw new Exception($"Could not find the user with the id: {id}");
+        public User GetById(string id)
+        {
+            return _dataStore.GetById<User>(id);
+        }
 
-            return foundUser;
-        } 
+        public bool Delete(string id)
+        {
+            _dataStore.Delete<User>(id);
+            return true;
+
+        }
     }
 }

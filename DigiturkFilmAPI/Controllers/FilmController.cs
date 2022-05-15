@@ -40,9 +40,9 @@ namespace DigiturkFilmAPI.Controllers
 
         [HttpPatch]
         [AllowAnonymous]
-        public ActionResult<Film> Update(FilmRequest request, string id)
+        public ActionResult<Film> Update(Film request)
         {
-            return Ok(_filmService.Patch(request, id));
+            return Ok(_filmService.Patch(request));
         }
 
         [HttpDelete]

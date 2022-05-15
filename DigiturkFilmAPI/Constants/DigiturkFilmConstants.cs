@@ -2,6 +2,7 @@
 {
     public class DigiturkFilmConstants
     {
+        public const string DirectoryPath = "Data/";
         public const string FilmFileName = "Films.json";
         public const string UserFileName = "Users.json";
     }

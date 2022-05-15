@@ -10,15 +10,88 @@ namespace DigiturkFilmAPI.Stores
         public List<User> users = new List<User>();
         public List<Film> films = new List<Film>();
 
-        private readonly IConfiguration _configuration;
-        private readonly string _fileLocation = "";
-
-        public DataStore(IConfiguration configuration)
+        public DataStore()
         {
-            _configuration = configuration;
-            _fileLocation = _configuration.GetSection("DataStorage:Location").Value;
             SeedData(DigiturkFilmConstants.UserFileName);
             SeedData(DigiturkFilmConstants.FilmFileName);
+        }
+
+        public T Add<T>(T obj) where T : BaseClass 
+        {
+            List<T?> data = GetAll<T>();
+
+            data.Add(obj);
+            Save(data);
+            return obj;
+        }
+
+        public bool Delete<T>(string id) where T : BaseClass
+        {
+            List<T?> data = GetAll<T>();
+            T dataRemove = GetById<T>(id);
+
+            bool succeeded = data.Remove(dataRemove);
+            Save(data);
+            return succeeded;
+        }
+
+        public List<T?> GetAll<T>() where T : BaseClass
+        {
+            // If there are no file we will just send the empty result
+            if (!File.Exists(GetFullFilePath<T>()))
+                return new List<T?>().ToList();
+
+            string storedData = File.ReadAllText(GetFullFilePath<T>());
+
+            List<T?> allFilms = JsonSerializer.Deserialize<List<T?>>(storedData);
+
+            return allFilms;
+        }
+
+        public T GetById<T>(string id) where T : BaseClass
+        {
+            T? foundData = GetByIdOrDefault<T>(id);
+
+            if (foundData is null)
+                throw new Exception($"Could not find the data with the id: {id}");
+
+            return foundData;
+        }
+
+        public T? GetByIdOrDefault<T>(string id) where T : BaseClass
+        {
+            T? foundData = GetAll<T>().FirstOrDefault(f => f.Id == id);
+            return foundData;
+        }
+
+        public T Update<T>(T obj) where T : BaseClass
+        {
+            List<T?> allData = GetAll<T>();
+            var foundDataIndex = allData.FindIndex(T => T.Id == obj.Id);
+
+            if (foundDataIndex == -1)
+                throw new Exception($"Failed to update, could not find the data with the id: {obj.Id} ");
+
+            allData[foundDataIndex] = obj;
+
+            Save(allData);
+            return allData[foundDataIndex];
+        }
+
+
+        public void Save<T>(List<T?> objs) where T : BaseClass
+        {
+            FileStream? stream = null;
+
+            // We need to create the file if it does not already exist.
+            if (!File.Exists(GetFullFilePath<T>()))
+                stream = File.Create(GetFullFilePath<T>());
+
+            if (stream is null)
+                stream = File.OpenWrite(GetFullFilePath<T>());
+
+            JsonSerializer.SerializeAsync(stream, objs).Wait();
+            stream.Dispose();
         }
 
         private void SeedData(string fileName)
@@ -28,7 +101,10 @@ namespace DigiturkFilmAPI.Stores
 
             CreateDirectoryIfNotExist();
             CreateFileIfNotExist(fileName);
-            string storedData = File.ReadAllText(_fileLocation + fileName);
+            string storedData = File.ReadAllText(DigiturkFilmConstants.DirectoryPath + fileName);
+
+            if (storedData != "[]")
+                return;
 
 
             switch (fileName)
@@ -45,15 +121,15 @@ namespace DigiturkFilmAPI.Stores
         private void CreateDirectoryIfNotExist()
         {
             // We need to create the file if it does not already exist.
-            if (!Directory.Exists(_fileLocation))
-                Directory.CreateDirectory(_fileLocation);
+            if (!Directory.Exists(DigiturkFilmConstants.DirectoryPath))
+                Directory.CreateDirectory(DigiturkFilmConstants.DirectoryPath);
         }
 
         private void CreateFileIfNotExist(string fileName)
         {
-            if (!File.Exists(fileName))
+            if (!File.Exists(DigiturkFilmConstants.DirectoryPath + fileName))
             {
-                FileStream stream = File.Create(_fileLocation + fileName);
+                FileStream stream = File.Create(DigiturkFilmConstants.DirectoryPath + fileName);
 
                 switch(fileName)
                 {
@@ -65,11 +141,21 @@ namespace DigiturkFilmAPI.Stores
                         films.AddRange(SetDefaultFilmData());
                         JsonSerializer.SerializeAsync(stream, films).Wait();
                         break;
-                    default: throw new Exception("Given file name is missing logic for creation"); break;
+                    default: throw new Exception("Given file name is missing logic for creation");
                 }
 
                 stream.Dispose();
             }
+        }
+
+        private string GetFullFilePath<T>()
+        {
+            if (typeof(T).FullName == typeof(User).FullName)
+                return DigiturkFilmConstants.DirectoryPath + DigiturkFilmConstants.UserFileName;
+            else if (typeof(T).FullName == typeof(Film).FullName)
+                return DigiturkFilmConstants.DirectoryPath + DigiturkFilmConstants.FilmFileName;
+            else
+                throw new Exception("Given generic is not a valid");
         }
              
         private User SetDefaultUserData()
