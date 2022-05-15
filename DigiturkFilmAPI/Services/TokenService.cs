@@ -12,41 +12,39 @@ namespace DigiturkFilmAPI.Services
     public class TokenService
     {
         private readonly IConfiguration _configuration;
-        private readonly string key = "57617b5d2349434b34734345635073433835777e2d244c31715535255a366773755a4d70532a5879793238235f707c4f7865753f3f446e633a21575643303f66";
+
         public TokenService(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
+        /*
+         * The hashing and encoding logic was referenced by the link 'https://stackoverflow.com/questions/12185122/calculating-hmacsha256-using-c-sharp-to-match-payment-provider-example'.
+         * However the logic was improved upon by storing the salt on the user rather than storing a static string for enhancing security.
+         * 
+         */
+
         public (string hash, string salt) CreatePasswordHash(string password)
         {
-            //string tempSalt = null;
+            byte[] tempSalt = null;
 
-            //using (var hmac = new HMACSHA256())
-            //{
-            //    var byteSalt = hmac.Key;
-            //    var byteHash = System.Text.Encoding.UTF8.GetBytes(password);
-            //    tempSalt = System.Text.Encoding.UTF8.GetString(byteSalt);
-            //}
+            using (var hmac = new HMACSHA256())
+            {
+                var byteSalt = hmac.Key;
+                tempSalt = byteSalt;
+            }
 
-            byte[] hash = HashHMAC(HexDecode(key), StringEncode(password));
+            byte[] hash = HashHMAC(tempSalt, StringEncode(password));
             string computedHash = HashEncode(hash);
 
-            return (computedHash, computedHash);
+            return (computedHash, HashEncode(tempSalt));
         }
 
         public bool VerifyPasswordHash(User user, string password)
         {
-            byte[] hash = HashHMAC(HexDecode(key), StringEncode(password));
+            byte[] hash = HashHMAC(HexDecode(user.PasswordSalt), StringEncode(password));
             string computedHash = HashEncode(hash);
             return computedHash.SequenceEqual(user.PasswordHash);
-
-            //using (var hmac = new HMACSHA256(System.Text.Encoding.UTF8.GetBytes(user.PasswordSalt)))
-            //{
-            //    var passwordBytes = System.Text.Encoding.UTF8.GetBytes(password);
-            //    var computedHash = System.Text.Encoding.UTF8.GetString(hmac.ComputeHash(passwordBytes));
-            //    return computedHash.SequenceEqual(user.PasswordHash);
-            //}
         }
 
         public string CreateToken(User user)
