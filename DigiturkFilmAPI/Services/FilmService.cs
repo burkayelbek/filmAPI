@@ -1,12 +1,20 @@
 ﻿using DigiturkFilmAPI.Constants;
 using DigiturkFilmAPI.Domain;
 using DigiturkFilmAPI.Models;
+using DigiturkFilmAPI.Stores;
 using System.Text.Json;
 
 namespace DigiturkFilmAPI.Services
 {
     public class FilmService
     {
+        private readonly DataStore _dataStore;
+
+        public FilmService(DataStore dataStore)
+        {
+            _dataStore = dataStore;
+        }
+
         public Film Create (FilmRequest request)
         {
             request.Validate();

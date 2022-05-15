@@ -1,26 +1,118 @@
-﻿using DigiturkFilmAPI.Domain;
+﻿using DigiturkFilmAPI.Constants;
+using DigiturkFilmAPI.Domain;
 using DigiturkFilmAPI.Models;
+using System.Text.Json;
 
 namespace DigiturkFilmAPI.Stores
 {
     public class DataStore
     {
         public List<User> users = new List<User>();
+        public List<Film> films = new List<Film>();
 
-        public DataStore()
+        private readonly IConfiguration _configuration;
+        private readonly string _fileLocation = "";
+
+        public DataStore(IConfiguration configuration)
         {
-            seedUser();
+            _configuration = configuration;
+            _fileLocation = _configuration.GetSection("DataStorage:Location").Value;
+            SeedData(DigiturkFilmConstants.UserFileName);
+            SeedData(DigiturkFilmConstants.FilmFileName);
         }
 
-        private void seedUser()
+        private void SeedData(string fileName)
         {
-            // Password: admin123
-            //users.Add(new User
-            //{
-            //    Username = "admin",
-            //    PasswordHash = new byte[] { 241, 38, 243, 51, 247, 2, 97, 240, 74, 65, 204, 137, 163, 13, 72, 110, 202, 157, 109, 19, 75, 229, 125, 117, 219, 139, 111, 2, 188, 138, 1, 225, 32, 221, 89, 125, 136, 84, 146, 220, 44, 81, 38, 241, 11, 12, 84, 128, 248, 19, 35, 153, 5, 37, 251, 29, 140, 123, 87, 59, 56, 116, 84, 26 },
-            //    PasswordSalt = new byte[] { 125, 72, 109, 234, 9, 231, 173, 34, 174, 59, 178, 205, 234, 221, 50, 198, 237, 119, 233, 45, 44, 139, 84, 25, 38, 136, 109, 196, 106, 190, 40, 255, 244, 44, 177, 138, 182, 78, 10, 223, 251, 62, 47, 15, 151, 50, 247, 37, 102, 19, 102, 93, 185, 82, 173, 148, 243, 237, 156, 67, 244, 121, 210, 93, 246, 194, 45, 48, 252, 33, 188, 94, 172, 194, 201, 184, 42, 47, 12, 49, 70, 96, 15, 250, 247, 254, 1, 103, 67, 221, 60, 76, 47, 158, 45, 2, 114, 205, 153, 44, 193, 215, 31, 85, 225, 254, 84, 79, 239, 234, 110, 73, 106, 99, 55, 175, 91, 125, 62, 202, 22, 55, 225, 255, 191, 174, 49, 161 }
-            //});
+            if (!fileName.Contains(DigiturkFilmConstants.UserFileName) && !fileName.Contains(DigiturkFilmConstants.FilmFileName))
+                throw new Exception("Invalid file name or un-handled!");
+
+            CreateDirectoryIfNotExist();
+            CreateFileIfNotExist(fileName);
+            string storedData = File.ReadAllText(_fileLocation + fileName);
+
+
+            switch (fileName)
+            {
+                case DigiturkFilmConstants.UserFileName:
+                    users = JsonSerializer.Deserialize<List<User>>(storedData);
+                    break;
+                case DigiturkFilmConstants.FilmFileName:
+                    films = JsonSerializer.Deserialize<List<Film>>(storedData);
+                    break;
+            }
+        }
+
+        private void CreateDirectoryIfNotExist()
+        {
+            // We need to create the file if it does not already exist.
+            if (!Directory.Exists(_fileLocation))
+                Directory.CreateDirectory(_fileLocation);
+        }
+
+        private void CreateFileIfNotExist(string fileName)
+        {
+            if (!File.Exists(fileName))
+            {
+                FileStream stream = File.Create(_fileLocation + fileName);
+
+                switch(fileName)
+                {
+                    case DigiturkFilmConstants.UserFileName:
+                        users.Add(SetDefaultUserData());
+                        JsonSerializer.SerializeAsync(stream, users).Wait();
+                        break;
+                    case DigiturkFilmConstants.FilmFileName:
+                        films.AddRange(SetDefaultFilmData());
+                        JsonSerializer.SerializeAsync(stream, films).Wait();
+                        break;
+                    default: throw new Exception("Given file name is missing logic for creation"); break;
+                }
+
+                stream.Dispose();
+            }
+        }
+             
+        private User SetDefaultUserData()
+        {
+            // Password is : admin123
+            return new User
+            {
+                Username = "admin",
+                PasswordHash = "2b3c2fc2be92aa2351593b4c8ca19239673924c3c6c08c9137aee37c221d7382",
+                PasswordSalt = "dfa282864394992766619782dd1b25b57e8d4a66ca50fd2505e9f76e54b987005948af6c57df6f313d9cd84e276f63ba80488c8cbdb050b1ffedeb98ff8cbd05"
+            };
+        }
+
+        private List<Film> SetDefaultFilmData()
+        {
+
+            return new List<Film>
+            {   
+                new Film
+                {
+                    Title = "Comedy film",
+                    Description = "This is a description about a film",
+                    ThumbnailUrl = "[insert URL]",
+                    VideoUrl = "[insert URL]",
+                    Category = Domain.Enums.FilmCategory.Comedy,
+                },
+                new Film
+                {
+                    Title = "Drama film",
+                    Description = "This is a description about a film",
+                    ThumbnailUrl = "[insert URL]",
+                    VideoUrl = "[insert URL]",
+                    Category = Domain.Enums.FilmCategory.Drama,
+                },
+                new Film
+                {
+                    Title = "Action film",
+                    Description = "This is a description about a film",
+                    ThumbnailUrl = "[insert URL]",
+                    VideoUrl = "[insert URL]",
+                    Category = Domain.Enums.FilmCategory.Action,
+                }
+            };
         }
 
     }
