@@ -24,7 +24,7 @@ namespace DigiturkFilmAPI.Services
             // Validate that the parameters of the object is safe to use.
             request.ValidateObject();
 
-            User? foundUser = _store.users.FirstOrDefault(u => u.Username == request.Username);
+            User? foundUser = _store.GetAll<User>().FirstOrDefault(u => u.Username == request.Username);
 
             if (foundUser is null || !_tokenService.VerifyPasswordHash(foundUser, request.Password))
                 throw new Exception("Username or password is wrong... Please try again");
@@ -44,7 +44,7 @@ namespace DigiturkFilmAPI.Services
                 PasswordSalt = salt
             };
 
-            _store.users.Add(newUser);
+            _store.Add<User>(newUser);
             return newUser;
         }
 

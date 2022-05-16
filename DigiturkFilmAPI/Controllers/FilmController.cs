@@ -18,35 +18,35 @@ namespace DigiturkFilmAPI.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize]
         public ActionResult<List<Film>> GetAll()
         {
             return Ok(_filmService.GetAll());
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
+        [Authorize]
         public ActionResult<Film> GetById(string id)
         {
             return Ok(_filmService.GetById(id));
         }
 
         [HttpPost]
-        [AllowAnonymous]
+        [Authorize]
         public ActionResult<Film> Create(FilmRequest request)
         {
             return Ok(_filmService.Create(request));
         }
 
         [HttpPatch]
-        [AllowAnonymous]
+        [Authorize]
         public ActionResult<Film> Update(Film request)
         {
             return Ok(_filmService.Patch(request));
         }
 
         [HttpDelete]
-        [AllowAnonymous]
+        [Authorize]
         public ActionResult<bool> Delete(string id)
         {
             return Ok(_filmService.Delete(id));

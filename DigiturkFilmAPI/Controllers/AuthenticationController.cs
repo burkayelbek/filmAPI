@@ -32,13 +32,5 @@ namespace DigiturkFilmAPI.Controllers
         {
             return _authenticationService.Register(request);
         }
-
-        [HttpGet]
-        [Route("test")]
-        [Authorize]
-        public ActionResult<string> test()
-        {
-            return Ok();
-        }
     }
 }
